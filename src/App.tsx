@@ -1,4 +1,8 @@
 import React, { useState } from 'react';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
+import Login from './components/Auth/Login';
+import Register from './components/Auth/Register';
 import Sidebar from './components/Layout/Sidebar';
 import Header from './components/Layout/Header';
 import Dashboard from './components/Dashboard/Dashboard';
@@ -7,9 +11,28 @@ import SharedWallets from './components/SharedWallets/SharedWallets';
 import Insights from './components/Insights/Insights';
 import Rewards from './components/Rewards/Rewards';
 import Notifications from './components/Notifications/Notifications';
+import Accounts from './components/Accounts/Accounts';
+import Budget from './components/Budget/Budget';
+import Settings from './components/Settings/Settings';
 
-function App() {
+const AppContent: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <AuthWrapper />;
+  }
 
   const renderContent = () => {
     switch (activeTab) {
@@ -26,18 +49,18 @@ function App() {
       case 'notifications':
         return <Notifications />;
       case 'accounts':
-        return <div className="text-center py-12"><p className="text-gray-500">Accounts view coming soon...</p></div>;
+        return <Accounts />;
       case 'budget':
-        return <div className="text-center py-12"><p className="text-gray-500">Budget management coming soon...</p></div>;
+        return <Budget />;
       case 'settings':
-        return <div className="text-center py-12"><p className="text-gray-500">Settings coming soon...</p></div>;
+        return <Settings />;
       default:
         return <Dashboard />;
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
       <Header />
       <main className="ml-64 pt-16 p-6">
@@ -46,6 +69,26 @@ function App() {
         </div>
       </main>
     </div>
+  );
+};
+
+const AuthWrapper: React.FC = () => {
+  const [isLogin, setIsLogin] = useState(true);
+
+  return isLogin ? (
+    <Login onSwitchToRegister={() => setIsLogin(false)} />
+  ) : (
+    <Register onSwitchToLogin={() => setIsLogin(true)} />
+  );
+};
+
+function App() {
+  return (
+    <ThemeProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 
